@@ -31,8 +31,10 @@ const commonPropTypes = {
 
     colors: PropTypes.arrayOf(PropTypes.string).isRequired,
     colorScale: PropTypes.func,
-
+    granularity: PropTypes.oneOf(['year', 'month']),
     direction: PropTypes.oneOf(['horizontal', 'vertical']),
+    breakpoint: PropTypes.number.isRequired,
+    weekDirection: PropTypes.oneOf(['auto', 'horizontal', 'vertical']),
     emptyColor: PropTypes.string.isRequired,
 
     yearLegend: PropTypes.func.isRequired,
@@ -83,6 +85,10 @@ const commonDefaultProps = {
 
     minValue: 0,
     maxValue: 'auto',
+
+    granularity: 'year',
+    weekDirection: 'auto',
+    breakpoint: 1,
 
     yearSpacing: 30,
     yearLegend: year => year,

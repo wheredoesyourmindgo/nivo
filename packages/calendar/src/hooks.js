@@ -27,6 +27,9 @@ export const useCalendarLayout = ({
     monthSpacing,
     daySpacing,
     align,
+    granularity,
+    weekDirection,
+    breakpoint
 }) =>
     useMemo(
         () =>
@@ -40,8 +43,13 @@ export const useCalendarLayout = ({
                 monthSpacing,
                 daySpacing,
                 align,
+                granularity,
+                weekDirection,
+                breakpoint
             }),
-        [width, height, from, to, direction, yearSpacing, monthSpacing, daySpacing, align]
+        [width, height, from, to, direction, yearSpacing, monthSpacing, daySpacing, align, granularity,
+            weekDirection,
+            breakpoint]
     )
 
 export const useColorScale = ({ data, minValue, maxValue, colors, colorScale }) =>

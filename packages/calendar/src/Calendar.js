@@ -52,6 +52,10 @@ const Calendar = ({
     dayBorderWidth,
     daySpacing,
 
+    granularity,
+    weekDirection,
+    breakpoint,
+
     isInteractive,
     tooltip,
     onClick,
@@ -77,6 +81,9 @@ const Calendar = ({
         monthSpacing,
         daySpacing,
         align,
+        granularity,
+        weekDirection,
+        breakpoint
     })
     colorScale = useColorScale({ data, minValue, maxValue, colors, colorScale })
     const monthLegends = useMonthLegends({

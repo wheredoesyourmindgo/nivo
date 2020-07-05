@@ -11,7 +11,7 @@ import isDate from 'lodash.isdate'
 import range from 'lodash.range'
 import { alignBox } from '@nivo/core'
 import { timeFormat } from 'd3-time-format'
-import { timeDays, timeWeek, timeWeeks, timeMonths, timeYear } from 'd3-time'
+import { timeDays, timeWeek, timeWeeks, timeMonths } from 'd3-time'
 
 /**
  * Compute min/max values.
@@ -52,13 +52,14 @@ const computeCellSize = ({
     daySpacing,
     maxRowsMonth,
     maxColumnsGroup,
-    monthsPerGroup
+    monthsPerGroup,
 }) => {
     let hCellSize
     let vCellSize
 
     if (direction === 'horizontal') {
-        hCellSize = (width - monthSpacing * monthsPerGroup - daySpacing * maxColumnsGroup) / maxColumnsGroup
+        hCellSize =
+            (width - monthSpacing * monthsPerGroup - daySpacing * maxColumnsGroup) / maxColumnsGroup
         vCellSize =
             (height - (blocks - 1) * yearSpacing - blocks * (maxRowsMonth * daySpacing)) /
             (blocks * maxRowsMonth)
@@ -66,7 +67,9 @@ const computeCellSize = ({
         hCellSize =
             (width - (blocks - 1) * yearSpacing - blocks * (maxRowsMonth * daySpacing)) /
             (blocks * maxRowsMonth)
-        vCellSize = (height - monthSpacing * monthsPerGroup - daySpacing * maxColumnsGroup) / maxColumnsGroup
+        vCellSize =
+            (height - monthSpacing * monthsPerGroup - daySpacing * maxColumnsGroup) /
+            maxColumnsGroup
     }
 
     return Math.min(hCellSize, vCellSize)
@@ -89,39 +92,48 @@ const computeCellSize = ({
 const monthPathAndBBox = ({
     date,
     cellSize,
-    yearIndex,
+    blockIndex,
     yearSpacing,
     monthSpacing,
     daySpacing,
     direction,
     originX,
     originY,
+    startDate,
+    maxRowsMonth,
+    weekDirection,
 }) => {
     // first day of next month
-    const t1 = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+    const t1 = new Date(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)
 
     // ranges
-    const firstWeek = timeWeek.count(timeYear(date), date)
-    const lastWeek = timeWeek.count(timeYear(t1), t1)
+    const elapsedMonths = getElapsedMonths(startDate, date)
+    const firstWeek = timeWeek.count(startDate, date)
+    const lastWeek = timeWeek.count(startDate, t1)
     const firstDay = date.getDay()
     const lastDay = t1.getDay()
 
     // offset according to year index and month
     let xO = originX
     let yO = originY
-    const yearOffset = yearIndex * (7 * (cellSize + daySpacing) + yearSpacing)
-    const monthOffset = date.getMonth() * monthSpacing
+    let itemsCount
+    if (weekDirection == 'horizontal') itemsCount = maxRowsMonth
+    else {
+        itemsCount = 7
+    }
+    const blockOffset = blockIndex * (itemsCount * (cellSize + daySpacing) + yearSpacing)
+    const monthOffset = elapsedMonths * monthSpacing
     if (direction === 'horizontal') {
-        yO += yearOffset
+        yO += blockOffset
         xO += monthOffset
     } else {
         yO += monthOffset
-        xO += yearOffset
+        xO += blockOffset
     }
 
     let path
     let bbox = { x: xO, y: yO, width: 0, height: 0 }
-    if (direction === 'horizontal') {
+    if (weekDirection === 'vertical') {
         path = [
             `M${xO + (firstWeek + 1) * (cellSize + daySpacing)},${
             yO + firstDay * (cellSize + daySpacing)
@@ -166,23 +178,28 @@ const memoMonthPathAndBBox = memoize(
     ({
         date,
         cellSize,
-        yearIndex,
+        blockIndex,
         yearSpacing,
         monthSpacing,
         daySpacing,
         direction,
         originX,
         originY,
+        startDate,
+        maxRowsMonth,
+        weekDirection,
     }) => {
-        return `${date.toString()}.${cellSize}.${yearIndex}.${yearSpacing}.${monthSpacing}.${daySpacing}.${direction}.${originX}.${originY}`
+        return `${date.toString()}.${startDate.toString()}.${maxRowsMonth}.${weekDirection}.${cellSize}.${blockIndex}.${yearSpacing}.${monthSpacing}.${daySpacing}.${direction}.${originX}.${originY}`
     }
 )
 
 const getElapsedMonths = (from, to) => {
-    return to.getUTCMonth() - from.getUTCMonth() + (12 * (to.getUTCFullYear() - from.getUTCFullYear()))
+    return (
+        to.getUTCMonth() - from.getUTCMonth() + 12 * (to.getUTCFullYear() - from.getUTCFullYear())
+    )
 }
 
-const getWeekOfTheMonth = (date) => {
+const getWeekOfTheMonth = date => {
     const firstWeekday = new Date(date.getUTCFullYear(), date.getUTCMonth(), 1).getDay()
     const offsetDate = date.getDate() + firstWeekday - 1
     return Math.floor(offsetDate / 7)
@@ -190,35 +207,39 @@ const getWeekOfTheMonth = (date) => {
 
 const getA = (d, blockIndex, yearSpacing, daySpacing, maxRowsMonth, cellSize) => {
     const weekOfMonth = getWeekOfTheMonth(d)
-    return weekOfMonth * (cellSize + daySpacing) +
+    return (
+        weekOfMonth * (cellSize + daySpacing) +
         daySpacing / 2 +
         blockIndex * (yearSpacing + maxRowsMonth * (cellSize + daySpacing))
+    )
 }
 
 const getB = (d, startDate, monthSpacing, daySpacing, cellSize) => {
     const elapsedMonths = getElapsedMonths(startDate, d)
-    return elapsedMonths * 7 * (cellSize + daySpacing) +
+    return (
+        elapsedMonths * 7 * (cellSize + daySpacing) +
         d.getDay() * (cellSize + daySpacing) +
         daySpacing / 2 +
         elapsedMonths * monthSpacing
+    )
 }
 
 const getC = (d, blockIndex, yearSpacing, daySpacing, maxRowsMonth, cellSize) => {
-    return d.getDay() * (cellSize + daySpacing) +
+    return (
+        d.getDay() * (cellSize + daySpacing) +
         daySpacing / 2 +
         blockIndex * (yearSpacing + maxRowsMonth * (cellSize + daySpacing))
+    )
 }
 
 const getD = (d, startDate, monthSpacing, daySpacing, cellSize) => {
     const elapsedWeeks = timeWeek.count(startDate, d)
     const elapsedMonths = getElapsedMonths(startDate, d)
-    return elapsedWeeks * (cellSize + daySpacing) +
-        daySpacing / 2 +
-        elapsedMonths * monthSpacing
+    return elapsedWeeks * (cellSize + daySpacing) + daySpacing / 2 + elapsedMonths * monthSpacing
 }
 
 /**
- * Returns a function to Compute day cell position for horizontal layout.
+ * Returns a function to Compute day cell position for horizontal layout and vertical week layout.
  *
  * @param {number} cellSize
  * @param {number} yearSpacing
@@ -226,17 +247,23 @@ const getD = (d, startDate, monthSpacing, daySpacing, cellSize) => {
  * @param {number} daySpacing
  * @returns { function(): { x: number, y: number } }
  */
-const cellPositionHorizontalVertical = (cellSize, yearSpacing, monthSpacing, daySpacing, maxRowsMonth) => {
+const cellPositionHorizontalVertical = (
+    cellSize,
+    yearSpacing,
+    monthSpacing,
+    daySpacing,
+    maxRowsMonth
+) => {
     return (originX, originY, d, blockIndex, startDate) => {
         return {
             x: originX + getD(d, startDate, monthSpacing, daySpacing, cellSize),
-            y: originY + getC(d, blockIndex, yearSpacing, daySpacing, maxRowsMonth, cellSize)
+            y: originY + getC(d, blockIndex, yearSpacing, daySpacing, maxRowsMonth, cellSize),
         }
     }
 }
 
 /**
- * Returns a function to Compute day cell position for vertical layout.
+ * Returns a function to Compute day cell position for vertical layout and horizontal week layout.
  *
  * @param {number} cellSize
  * @param {number} yearSpacing
@@ -244,17 +271,23 @@ const cellPositionHorizontalVertical = (cellSize, yearSpacing, monthSpacing, day
  * @param {number} daySpacing
  * @returns { function(): { x: number, y: number } }
  */
-const cellPositionVerticalHorizontal = (cellSize, yearSpacing, monthSpacing, daySpacing, maxRowsMonth) => {
+const cellPositionVerticalHorizontal = (
+    cellSize,
+    yearSpacing,
+    monthSpacing,
+    daySpacing,
+    maxRowsMonth
+) => {
     return (originX, originY, d, blockIndex, startDate) => {
         return {
             x: originX + getC(d, blockIndex, yearSpacing, daySpacing, maxRowsMonth, cellSize),
-            y: originY + getD(d, startDate, monthSpacing, daySpacing, cellSize)
+            y: originY + getD(d, startDate, monthSpacing, daySpacing, cellSize),
         }
     }
 }
 
 /**
- * Returns a function to Compute day cell position for vertical layout.
+ * Returns a function to Compute day cell position for vertical layout and vertical week layout.
  *
  * @param {number} cellSize
  * @param {number} yearSpacing
@@ -262,18 +295,23 @@ const cellPositionVerticalHorizontal = (cellSize, yearSpacing, monthSpacing, day
  * @param {number} daySpacing
  * @returns { function(): { x: number, y: number } }
  */
-const cellPositionVerticalVertical = (cellSize, yearSpacing, monthSpacing, daySpacing, maxRowsMonth) => {
+const cellPositionVerticalVertical = (
+    cellSize,
+    yearSpacing,
+    monthSpacing,
+    daySpacing,
+    maxRowsMonth
+) => {
     return (originX, originY, d, blockIndex, startDate) => {
-
         return {
             x: originX + getA(d, blockIndex, yearSpacing, daySpacing, maxRowsMonth),
-            y: originY + getB(d, startDate, monthSpacing, daySpacing, cellSize)
+            y: originY + getB(d, startDate, monthSpacing, daySpacing, cellSize),
         }
     }
 }
 
 /**
- * Returns a function to Compute day cell position for horizontal layout.
+ * Returns a function to Compute day cell position for horizontal layout and horizontal week layout.
  *
  * @param {number} cellSize
  * @param {number} yearSpacing
@@ -281,11 +319,17 @@ const cellPositionVerticalVertical = (cellSize, yearSpacing, monthSpacing, daySp
  * @param {number} daySpacing
  * @returns { function(): { x: number, y: number } }
  */
-const cellPositionHorizontalHorizontal = (cellSize, yearSpacing, monthSpacing, daySpacing, maxRowsMonth) => {
+const cellPositionHorizontalHorizontal = (
+    cellSize,
+    yearSpacing,
+    monthSpacing,
+    daySpacing,
+    maxRowsMonth
+) => {
     return (originX, originY, d, blockIndex, startDate) => {
         return {
             x: originX + getB(d, startDate, monthSpacing, daySpacing, cellSize),
-            y: originY + getA(d, blockIndex, yearSpacing, daySpacing, maxRowsMonth)
+            y: originY + getA(d, blockIndex, yearSpacing, daySpacing, maxRowsMonth),
         }
     }
 }
@@ -321,24 +365,28 @@ export const computeLayout = ({
     align,
     weekDirection,
     granularity,
-    breakpoint
+    breakpoint,
 }) => {
+    if (weekDirection === 'auto') {
+        weekDirection = direction === 'vertical' ? 'horizontal' : 'vertical'
+    }
     const fromDate = isDate(from) ? from : new Date(from)
     const toDate = isDate(to) ? to : new Date(to)
     let dates = []
     let maxRowsMonth
-
+    let maxColumnsGroup
     if (granularity === 'year') {
-        if (weekDirection === 'horizontal') {
-            maxRowsMonth = 6 // An year will always have a month with at least 6 parcial weeks
-        }
+        // An year will always have a month with at least 6 parcial weeks
+        maxRowsMonth = weekDirection === 'horizontal' ? 6 : 7
+        //TODO : NEED to change
+        maxColumnsGroup = 53//12 * weekDirection === 'horizontal' ? 7 : 6
         let yearRange = range(fromDate.getUTCFullYear(), toDate.getUTCFullYear() + 1)
         while (yearRange.length) {
             const arr = yearRange.splice(0, breakpoint)
             dates.push([new Date(arr[0], 0, 1), new Date(arr[arr.length - 1] + 1, 0, 1)])
         }
-
-    } else { //can only be month        
+    } else {
+        //can only be month
         let date = new Date(fromDate.getUTCFullYear(), fromDate.getUTCMonth(), 1)
         let aux = new Date(date.getTime())
         while (date < toDate) {
@@ -349,7 +397,7 @@ export const computeLayout = ({
                     let days = new Date(date.getUTCFullYear(), date.getUTCMonth() + i, 0).getDate()
                     if (days + weekDay >= 37) {
                         maxRowsMonth = 6
-                        break;
+                        break
                     } else if (days + weekDay == 28) {
                         maxRowsMonth = Math.max(maxRowsMonth, 4)
                     } else {
@@ -362,20 +410,13 @@ export const computeLayout = ({
             dates.push([date, new Date(aux.getTime())])
             date = new Date(aux.getTime())
         }
+        if (weekDirection === 'vertical') {
+            maxColumnsGroup = Math.max(...dates.map(date => timeWeeks(date[0], date[1]).length)) + 1
+        } else {
+            maxColumnsGroup = 7 * monthsPerGroup
+        }
     }
     const monthsPerGroup = granularity == 'year' ? breakpoint * 12 : breakpoint
-    let maxColumnsGroup
-    if (weekDirection === 'vertical') {
-        maxColumnsGroup =
-            Math.max(
-                ...dates.map(
-                    date => timeWeeks(date[0], date[1]).length
-                )
-            ) + 1
-        maxRowsMonth = 7
-    } else {
-        maxColumnsGroup = 7 * monthsPerGroup
-    }
     const cellSize = computeCellSize({
         width,
         height,
@@ -386,11 +427,13 @@ export const computeLayout = ({
         daySpacing,
         maxRowsMonth,
         maxColumnsGroup,
-        monthsPerGroup
+        monthsPerGroup,
     })
 
-    const monthsSize = cellSize * maxColumnsGroup + daySpacing * maxColumnsGroup + monthSpacing * monthsPerGroup
-    const yearsSize = (cellSize + daySpacing) * maxRowsMonth * dates.length + yearSpacing * (dates.length - 1)
+    const monthsSize =
+        cellSize * maxColumnsGroup + daySpacing * maxColumnsGroup + monthSpacing * monthsPerGroup
+    const yearsSize =
+        (cellSize + daySpacing) * maxRowsMonth * dates.length + yearSpacing * (dates.length - 1)
 
     const calendarWidth = direction === 'horizontal' ? monthsSize : yearsSize
     const calendarHeight = direction === 'horizontal' ? yearsSize : monthsSize
@@ -413,15 +456,39 @@ export const computeLayout = ({
     let cellPosition
     if (direction === 'horizontal') {
         if (weekDirection === 'horizontal') {
-            cellPosition = cellPositionHorizontalHorizontal(cellSize, yearSpacing, monthSpacing, daySpacing, maxRowsMonth)
+            cellPosition = cellPositionHorizontalHorizontal(
+                cellSize,
+                yearSpacing,
+                monthSpacing,
+                daySpacing,
+                maxRowsMonth
+            )
         } else {
-            cellPosition = cellPositionHorizontalVertical(cellSize, yearSpacing, monthSpacing, daySpacing, maxRowsMonth)
+            cellPosition = cellPositionHorizontalVertical(
+                cellSize,
+                yearSpacing,
+                monthSpacing,
+                daySpacing,
+                maxRowsMonth
+            )
         }
     } else {
         if (weekDirection === 'horizontal') {
-            cellPosition = cellPositionVerticalHorizontal(cellSize, yearSpacing, monthSpacing, daySpacing, maxRowsMonth)
+            cellPosition = cellPositionVerticalHorizontal(
+                cellSize,
+                yearSpacing,
+                monthSpacing,
+                daySpacing,
+                maxRowsMonth
+            )
         } else {
-            cellPosition = cellPositionVerticalVertical(cellSize, yearSpacing, monthSpacing, daySpacing, maxRowsMonth)
+            cellPosition = cellPositionVerticalVertical(
+                cellSize,
+                yearSpacing,
+                monthSpacing,
+                daySpacing,
+                maxRowsMonth
+            )
         }
     }
 
@@ -436,39 +503,49 @@ export const computeLayout = ({
                     date: dayDate,
                     day: dayFormat(dayDate),
                     size: cellSize,
-                    ...cellPosition(originX, originY, dayDate, i),
+                    ...cellPosition(originX, originY, dayDate, i, date[0]),
                 }
             })
         )
         //TODO: review from here
-        const yearMonths = timeMonths(date[0], date[1]).map(monthDate => ({
+        const blockMonths = timeMonths(date[0], date[1]).map(monthDate => ({
             date: monthDate,
-            year: monthDate.getFullYear(),
-            month: monthDate.getMonth(),
+            year: monthDate.getUTCFullYear(),
+            month: monthDate.getUTCMonth(),
             ...memoMonthPathAndBBox({
                 originX,
                 originY,
                 date: monthDate,
                 direction,
-                yearIndex: i,
+                blockIndex: i,
                 yearSpacing,
                 monthSpacing,
                 daySpacing,
                 cellSize,
+                startDate: date[0],
+                maxRowsMonth,
+                weekDirection,
             }),
         }))
 
-        months = months.concat(yearMonths)
-
-        years.push({
-            year: date[0],
-            bbox: {
-                x: yearMonths[0].bbox.x,
-                y: yearMonths[0].bbox.y,
-                width: yearMonths[11].bbox.x - yearMonths[0].bbox.x + yearMonths[11].bbox.width,
-                height: yearMonths[11].bbox.y - yearMonths[0].bbox.y + yearMonths[11].bbox.height,
-            },
-        })
+        months = months.concat(blockMonths)
+        if (granularity === 'year') {
+            years.push({
+                year: date[0].getUTCFullYear(),
+                bbox: {
+                    x: blockMonths[0].bbox.x,
+                    y: blockMonths[0].bbox.y,
+                    width:
+                        blockMonths[blockMonths.length - 1].bbox.x -
+                        blockMonths[0].bbox.x +
+                        blockMonths[blockMonths.length - 1].bbox.width,
+                    height:
+                        blockMonths[blockMonths.length - 1].bbox.y -
+                        blockMonths[0].bbox.y +
+                        blockMonths[blockMonths.length - 1].bbox.height,
+                },
+            })
+        }
     })
 
     return { years, months, days, cellSize, calendarWidth, calendarHeight, originX, originY }
