@@ -72,6 +72,10 @@ const CalendarCanvas = memo(
         dayBorderWidth,
         daySpacing,
 
+        granularity,
+        weekDirection,
+        breakpoint,
+
         isInteractive,
         tooltip,
         onClick,
@@ -97,6 +101,9 @@ const CalendarCanvas = memo(
             monthSpacing,
             daySpacing,
             align,
+            granularity,
+            weekDirection,
+            breakpoint,
         })
         colorScale = useColorScale({ data, minValue, maxValue, colors, colorScale })
         const monthLegends = useMonthLegends({

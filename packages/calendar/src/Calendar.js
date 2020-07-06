@@ -83,7 +83,7 @@ const Calendar = ({
         align,
         granularity,
         weekDirection,
-        breakpoint
+        breakpoint,
     })
     colorScale = useColorScale({ data, minValue, maxValue, colors, colorScale })
     const monthLegends = useMonthLegends({
