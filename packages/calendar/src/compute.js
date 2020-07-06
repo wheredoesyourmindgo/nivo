@@ -142,11 +142,11 @@ const monthPathAndBBox = ({
     if (weekDirection === 'vertical') {
         path = [
             `M${xO + (firstWeek + 1) * (cellSize + daySpacing)},${
-                yO + firstDay * (cellSize + daySpacing)
+            yO + firstDay * (cellSize + daySpacing)
             }`,
             `H${xO + firstWeek * (cellSize + daySpacing)}V${yO + 7 * (cellSize + daySpacing)}`,
             `H${xO + lastWeek * (cellSize + daySpacing)}V${
-                yO + (lastDay + 1) * (cellSize + daySpacing)
+            yO + (lastDay + 1) * (cellSize + daySpacing)
             }`,
             `H${xO + (lastWeek + 1) * (cellSize + daySpacing)}V${yO}`,
             `H${xO + (firstWeek + 1) * (cellSize + daySpacing)}Z`,
@@ -158,11 +158,11 @@ const monthPathAndBBox = ({
     } else {
         path = [
             `M${xO + firstDay * (cellSize + daySpacing)},${
-                yO + (firstWeek + 1) * (cellSize + daySpacing)
+            yO + (firstWeek + 1) * (cellSize + daySpacing)
             }`,
             `H${xO}V${yO + (lastWeek + 1) * (cellSize + daySpacing)}`,
             `H${xO + (lastDay + 1) * (cellSize + daySpacing)}V${
-                yO + lastWeek * (cellSize + daySpacing)
+            yO + lastWeek * (cellSize + daySpacing)
             }`,
             `H${xO + 7 * (cellSize + daySpacing)}V${yO + firstWeek * (cellSize + daySpacing)}`,
             `H${xO + firstDay * (cellSize + daySpacing)}Z`,
@@ -375,20 +375,7 @@ export const computeLayout = ({
 }) => {
     const fromDate = isDate(from) ? from : new Date(from)
     const toDate = isDate(to) ? to : new Date(to)
-    console.log(
-        width,
-        height,
-        fromDate,
-        toDate,
-        direction,
-        yearSpacing,
-        monthSpacing,
-        daySpacing,
-        align,
-        weekDirection,
-        granularity,
-        breakpoint
-    )
+
     if (weekDirection === 'auto') {
         weekDirection = direction === 'vertical' ? 'horizontal' : 'vertical'
     }
@@ -460,18 +447,7 @@ export const computeLayout = ({
     if (direction === weekDirection) {
         maxColumnsGroup = 7 * monthsPerGroup
     }
-    console.log(
-        width,
-        height,
-        direction,
-        dates.length,
-        yearSpacing,
-        monthSpacing,
-        daySpacing,
-        maxRowsMonth,
-        maxColumnsGroup,
-        monthsPerGroup
-    )
+
     const cellSize = computeCellSize({
         width,
         height,
@@ -484,7 +460,6 @@ export const computeLayout = ({
         maxColumnsGroup,
         monthsPerGroup,
     })
-    console.log(cellSize)
 
     const monthsSize =
         cellSize * maxColumnsGroup + daySpacing * maxColumnsGroup + monthSpacing * monthsPerGroup
