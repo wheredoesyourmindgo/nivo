@@ -432,7 +432,7 @@ export const computeLayout = ({
                     i += 1
                 }
             }
-            aux.setMonth(aux.getMonth() + breakpoint)
+            aux.setMonth(aux.getUTCMonth() + breakpoint)
             let pair = [date, new Date(aux.getTime())]
             dates.push(pair)
             if (direction !== weekDirection) {
