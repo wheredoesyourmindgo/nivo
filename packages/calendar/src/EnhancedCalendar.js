@@ -30,6 +30,7 @@ const EnhancedCalendar = ({
     data,
     direction,
     emptyColor,
+    undefinedColor,
     from,
     to,
     minValue,
@@ -100,7 +101,7 @@ const EnhancedCalendar = ({
         blockLegendPosition,
         blockLegendOffset,
     })
-    days = useDays({ days, data, colorScale, emptyColor })
+    days = useDays({ days, data, colorScale, emptyColor, undefinedColor })
     const formatLegend = useValueFormatter(legendFormat)
     const formatValue = useValueFormatter(valueFormat)
 
@@ -121,6 +122,7 @@ const EnhancedCalendar = ({
                     size={d.size}
                     spacing={daySpacing}
                     color={d.color}
+                    undefinedColor={d.undefinedColor}
                     borderWidth={dayBorderWidth}
                     borderColor={dayBorderColor}
                     onMouseEnter={onMouseEnter}

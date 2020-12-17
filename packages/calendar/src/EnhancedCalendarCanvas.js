@@ -55,6 +55,7 @@ const EnhancedCalendarCanvas = memo(
         data,
         direction,
         emptyColor,
+        undefinedColor,
         from,
         to,
         minValue,
@@ -122,7 +123,7 @@ const EnhancedCalendarCanvas = memo(
             blockLegendPosition,
             blockLegendOffset,
         })
-        const days = useDays({ days: rest.days, data, colorScale: colorScaleFn, emptyColor })
+        const days = useDays({ days: rest.days, data, colorScale: colorScaleFn, emptyColor, undefinedColor })
         const [currentDay, setCurrentDay] = useState(null)
         const theme = useTheme()
         const formatValue = useValueFormatter(valueFormat)

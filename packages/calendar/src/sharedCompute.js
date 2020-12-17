@@ -51,11 +51,13 @@ export const computeMonthLegendPositions = ({ months, direction, position, offse
  * @param {array}  data
  * @param {object} colorScale
  * @param {string} emptyColor
+ * @param {string} undefinedColor
  * @returns {Array}
  */
-export const bindDaysData = ({ days, data, colorScale, emptyColor }) => {
+export const bindDaysData = ({ days, data, colorScale, emptyColor, undefinedColor }) => {
     return days.map(day => {
         day.color = emptyColor
+        day.undefinedColor = undefinedColor
         data.forEach(dayData => {
             if (dayData.day === day.day) {
                 day.value = dayData.value

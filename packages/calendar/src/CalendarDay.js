@@ -17,6 +17,7 @@ const CalendarDay = memo(
         y,
         size,
         color,
+        undefinedColor,
         borderWidth,
         borderColor,
         isInteractive,
@@ -69,7 +70,7 @@ const CalendarDay = memo(
                 width={size}
                 height={size}
                 style={{
-                    fill: color,
+                    fill: color || undefinedColor,
                     strokeWidth: borderWidth,
                     stroke: borderColor,
                 }}
@@ -94,6 +95,7 @@ CalendarDay.propTypes = {
     size: PropTypes.number.isRequired,
     spacing: PropTypes.number.isRequired,
     color: PropTypes.string.isRequired,
+    undefinedColor: PropTypes.string,
     borderWidth: PropTypes.number.isRequired,
     borderColor: PropTypes.string.isRequired,
     isInteractive: PropTypes.bool.isRequired,

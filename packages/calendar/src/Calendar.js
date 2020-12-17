@@ -28,6 +28,7 @@ const Calendar = ({
     data,
     direction,
     emptyColor,
+    undefinedColor,
     from,
     to,
     minValue,
@@ -91,7 +92,7 @@ const Calendar = ({
         blockLegendPosition: yearLegendPosition,
         blockLegendOffset: yearLegendOffset,
     })
-    const days = useDays({ days: rest.days, data, colorScale: colorScaleFn, emptyColor })
+    const days = useDays({ days: rest.days, data, colorScale: colorScaleFn, emptyColor, undefinedColor })
     const formatLegend = useValueFormatter(legendFormat)
     const formatValue = useValueFormatter(valueFormat)
 

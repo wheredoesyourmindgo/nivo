@@ -27,7 +27,7 @@ export const useBlockLegends = ({ blocks, direction, blockLegendPosition, blockL
         [blocks, direction, blockLegendPosition, blockLegendOffset]
     )
 
-export const useDays = ({ days, data, colorScale, emptyColor }) =>
+export const useDays = ({ days, data, colorScale, emptyColor, undefinedColor }) =>
     useMemo(
         () =>
             bindDaysData({
@@ -35,6 +35,7 @@ export const useDays = ({ days, data, colorScale, emptyColor }) =>
                 data,
                 colorScale,
                 emptyColor,
+                undefinedColor
             }),
         [days, data, colorScale, emptyColor]
     )
