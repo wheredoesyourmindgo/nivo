@@ -93,6 +93,7 @@ declare module '@kevinmoe/nivo-fork-calendar' {
         dayBorderWidth: number
         dayBorderColor: string
         emptyColor: string
+        undefinedColor: string
 
         isInteractive: boolean
 
